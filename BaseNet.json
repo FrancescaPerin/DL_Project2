@@ -1,0 +1,1 @@
+{"filters": [3, 5, 15, 25, 50], "kernels": [5, 4, 3, 3, 2], "pooling": [[3, 3], [3, 3], null, [2, 2], null], "zero_padding": null, "activations_conv": "relu", "strides_conv": [1, 1], "strides_pool": null, "units": [500, 200, 100], "activations": "relu"}
