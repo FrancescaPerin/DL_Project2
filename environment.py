@@ -6,6 +6,8 @@ import types
 
 from enum import Enum
 
+PUNISHMENT_RESTART = -100.0 # punishment for going outside tracs
+
 class ActionSpace:
 
     class Dir:
@@ -83,7 +85,18 @@ class Env(gym.Env):
         '''
 
         # Perform actions
-        state, reward, *info = self.step(self.actionInterpreter(*action))
+        state, reward, done, info = self.step(self.actionInterpreter(*action))
+
+        # Compute if agent cannot see track anymore
+
+        temp = state.reshape(-1, state.shape[-1]) # flatten first two dims
+        info["sees_track"] = ((temp>100) * (temp < 110)).all(-1).any() # check if gray is in the picture
+
+        # If outside tracks then reset game and give very negative reward
+        if not info["sees_track"]:
+            reward = PUNISHMENT_RESTART
+            self.reset_sim()
+            state, *_ = self.step(self.actionInterpreter(*action))
 
         # Render if specified
         if self.do_render:
