@@ -1,5 +1,6 @@
 # Python cache
 __pycache__**
 
-# Tensorboard logs
+# Tensorboard/Gym logs
 logs/**
+.env_stats/**
