@@ -22,7 +22,9 @@ class AgentBase():
         pass
 
     def observe(self, new_state, reward):
-        pass
+
+        self.last_transition = (self.prev_state, self.prev_action, reward, new_state)
+        return self.last_transition
 
 class RandomAgent(AgentBase):
 
@@ -31,11 +33,6 @@ class RandomAgent(AgentBase):
 
     def act(self, state):
         return rand.randint(0,8)
-
-    def observe(self, new_state, reward):
-
-        self.last_transition = (self.prev_state, self.prev_action, reward, new_state)
-        return self.last_transition
 
 # %% RL Agent Interface
 
@@ -60,8 +57,13 @@ class QAgent(AgentBase):
 
         return int(np.random.choice(self.action_space, p=probs)) # sample actions
 
-    def observe(self, new_state, reward):
-        self.trainFN(self.prev_state, np.array([self.prev_action])[None], np.array([reward])[None], new_state)
+    def learn(self):
+        self.trainFN(
+            self.last_transition[0], 
+            np.array([self.last_transition[1]])[None], 
+            np.array([self.last_transition[2]])[None], 
+            self.last_transition[3]
+        )
         return self
 
     def setQ(self, Q):

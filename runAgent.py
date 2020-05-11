@@ -78,6 +78,7 @@ def main(args):
 
         # Observe transition
         a.observe(new_state, reward)
+        a.learn()
 
         # Update state
         state = new_state
