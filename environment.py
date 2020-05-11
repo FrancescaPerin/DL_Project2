@@ -102,5 +102,5 @@ class Env(gym.Env):
         if self.do_render:
             self.render()
 
-        return state, reward, info
+        return state, reward, done, info
 

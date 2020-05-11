@@ -72,7 +72,7 @@ def main(args):
     for i in range(args.steps):
 
         # Act in the environment
-        new_state, reward, *_ = env.get_action(a(state))
+        new_state, reward, done, info = env.get_action(a(state))
 
         new_state = new_state[None].astype(np.float32)
 
@@ -82,6 +82,9 @@ def main(args):
 
         # Update state
         state = new_state
+
+        if done:
+            break
 
 if __name__ == "__main__":
 
