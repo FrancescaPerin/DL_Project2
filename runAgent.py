@@ -12,6 +12,7 @@ from environment import Env
 from argparse import ArgumentParser
 
 import os
+import json
 from tensorflow.python.ops import summary_ops_v2
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -27,6 +28,10 @@ def main(args):
 
     # Compile agent
 
+    # get net config
+    with open(args.net_config, "rt") as f:
+        net_config = json.load(f)
+
     with writer.as_default():
         state_space = (96, 96)
         action_space = np.arange(9)
@@ -38,7 +43,8 @@ def main(args):
             getQNetFunc(
                 state_space,
                 action_space,
-                BuildConvNet
+                BuildConvNet,
+                **net_config
             )
         ).setU(
             getOffPolicyMaxUtil(
@@ -94,5 +100,6 @@ if __name__ == "__main__":
     parser.add_argument("--log", type = lambda x : x.lower()=="true", default = False)
     parser.add_argument("--pause", type = float, default = 0.1)
     parser.add_argument("--steps", type = int, default = 300)
+    parser.add_argument("--net_config", type = str, default = "BaseNet.json", help="config file for network topology")
 
     main(parser.parse_args())
