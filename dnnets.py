@@ -1,4 +1,4 @@
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPool2D
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPool2D, ZeroPadding2D
 from tensorflow.keras import Model, Input
 
 # %% Networks models
@@ -8,13 +8,21 @@ def BuildConvNet(
     state_space,
     action_space,
 
-    filters = [3, 5, 15, 25, 50],
-    kernels = [5, 4, 3, 3, 2],
-    pooling = [(3,3), (3,3), None, (2,2), None],
+    filters = [96, 256, 384, 384, 256],
+    # filters = [3, 5, 15, 25, 50],
+    kernels = [3, 5, 3, 3, 3],
+    # kernels = [5, 4, 3, 3, 2],
+    pooling = [(3,3), (3,3), None, None, (3,3)],
+    # pooling = [(3,3), (3,3), None, (2,2), None],
+    zero_padding = [(2,2), (1,1), (1,1), None, None],
+    # zero_padding = None
     activations_conv = 'relu',
-    strides = (1,1),
+    strides_conv = (1,1),
+    strides_pool= (2,2),
+    # strides_pool = (1,1)
 
-    units = [500, 200, 100],
+    units = [4906, 4096, 4906],
+    # units = [500, 200, 100],
     activations = 'relu',
 
 ):
@@ -36,13 +44,21 @@ def BuildConvNet(
     if isinstance(activations, str):
         activations = [activations]*len(units)
 
-    if len(strides) != len(filters) and len(strides) == 2:
-        strides = [strides]*len(filters)
+    if len(strides_conv) != len(filters) and len(strides_conv) == 2:
+        strides_conv = [strides_conv]*len(filters)
+
+    if len(strides_pool) != len(filters) and len(strides_pool) == 2:
+        strides_pool = [strides_pool]*len(filters)
 
     if pooling is None or isinstance(pooling, tuple):
         pooling = [pooling]*len(filters)
 
-    assert isinstance(filters, (list, tuple)) and isinstance(kernels, (list, tuple)) and isinstance(activations_conv, (list, tuple)) and isinstance(strides, (list, tuple)) and isinstance(pooling, (list, tuple)), "Type not understood"
+    if zero_padding is None or isinstance(zero_padding, tuple):
+        zero_padding = [zero_padding]*len(zero_padding)
+
+    assert (isinstance(filters, (list, tuple)) and isinstance(kernels, (list, tuple)) and isinstance(activations_conv, (list, tuple)) 
+        and isinstance(strides_conv, (list, tuple)) and isinstance(strides_pool, (list, tuple)) 
+            and isinstance(pooling, (list, tuple)) and isinstance(zero_padding, (list, tuple)), "Type not understood")
     assert isinstance(units, (list, tuple)) and isinstance(activations, (list, tuple)), "Tupe not understood"
     assert len(filters) > 0, "Must have at least one convolutional layer"
     assert len(filters) == len(kernels), "Number of filter sizes and kernel sizes must be the same"
@@ -59,14 +75,22 @@ def BuildConvNet(
         x = Conv2D(
             filters = filters[i],
             kernel_size = kernels[i],
-            strides = strides[i],
+            strides = strides_conv[i],
             activation = activations_conv[i],
             data_format = 'channels_last'
         )(x)
 
         if pooling[i] is not None:
             x = MaxPool2D(
-                pool_size = pooling[i]
+                pool_size = pooling[i],
+                strides = strides_pool[i],
+                data_format = 'channels_last'
+            )(x)
+
+        if zero_padding[i] is not None:
+            x = ZeroPadding2D(
+                padding=zero_padding[i],
+                data_format = 'channels_last'
             )(x)
 
     x = Flatten()(x)
