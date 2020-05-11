@@ -1,5 +1,6 @@
 import numpy as np
 import gym
+from gym.wrappers import Monitor
 
 import types
 
@@ -50,6 +51,9 @@ class Env(gym.Env):
 
         # Load Car Racing game
         obj = gym.make('CarRacing-v0')
+
+        if not do_render:
+            obj = Monitor(obj, '.env_stats', video_callable=False, force=True)
 
         # Store parameters
         obj.do_render = do_render
