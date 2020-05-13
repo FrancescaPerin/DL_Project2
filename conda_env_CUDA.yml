@@ -1,4 +1,4 @@
-name: dl
+name: dl_gpu
 channels:
   - defaults
 dependencies:
@@ -15,6 +15,6 @@ dependencies:
     - box2d-py==2.3.8
     - gym==0.17.1
     - future==0.18.2
-    - tensorflow==2.1.0
-prefix: /opt/anaconda3/envs/dl
+    - tensorflow-gpu==2.1.0
+prefix: /opt/anaconda3/envs/dl_gpu
 
