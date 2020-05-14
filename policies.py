@@ -49,9 +49,12 @@ def getGreedyEAgent(
     greedy_e_actions = conditions*random_actions + (tf.constant(1, dtype="int32") - conditions)*greedy_actions
 
     # Get respective one-hot discrete distributions
-    action_dists = tf.gather(
-        I,
-        greedy_e_actions
+    action_dists = tf.cast(
+        tf.gather(
+            I,
+            greedy_e_actions
+        ),
+        "float32"
     )
 
     return Model(in_action_vals, action_dists, name='GreedyPolicyModel')
