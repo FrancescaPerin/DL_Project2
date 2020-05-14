@@ -1,5 +1,5 @@
 from tensorflow.keras import Model, Input
-from tensorflow import stop_gradient, reduce_max
+from tensorflow import stop_gradient, reduce_max, reduce_sum
 
 def getOffPolicyMaxUtil(action_space):
 
@@ -22,6 +22,7 @@ def getExpectedSarasUtil(action_space, PolicyModel):
         )
     )
 
-    out = tf.reduce_sum(in_action_vals*in_action_probs, axis=1, keepdims = True)
+    
+    out = reduce_sum(in_action_vals*in_action_probs, axis=1, keepdims = True)
 
     return Model(in_action_vals, out, name='ExSarsaUtility_Model')
