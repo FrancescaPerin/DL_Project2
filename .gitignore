@@ -4,3 +4,6 @@ __pycache__**
 # Tensorboard/Gym logs
 logs/**
 .env_stats/**
+
+# Plots
+**.png
