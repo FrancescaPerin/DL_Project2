@@ -9,6 +9,9 @@ from dnnets import *
 
 from environment import Env
 
+import numpy as np
+from matplotlib import pyplot as plt
+
 from argparse import ArgumentParser
 
 from tqdm import tqdm
@@ -75,6 +78,8 @@ def main(args):
         )
 
 
+        # Assemble agent
+
         a = QAgent(
             state_space = state_space,
             action_space = action_space,
@@ -102,9 +107,13 @@ def main(args):
 
     # Start action loop
 
+    cumulative_r = 0.0
+    history_r = np.zeros(args.steps)
+
     state = env.start_state[None].astype(np.float32)
 
-    for i in tqdm(range(args.steps), desc="steps"):
+    progress_bar = tqdm(range(args.steps))
+    for i in progress_bar:
 
         # Act in the environment
         new_state, reward, done, info = env.get_action(a(state))
@@ -120,6 +129,23 @@ def main(args):
 
         if done:
             break
+
+        # Stats
+
+        cumulative_r += reward
+        history_r[i] = reward
+
+        progress_bar.set_description("cumulative reward: %.3f"%cumulative_r)
+        progress_bar.refresh()
+
+    # Dump plot of results
+    plt.plot(np.arange(i), np.cumsum(history_r[:i]))
+
+    plt.title("Cumulative reward over time")
+    plt.ylabel("Cumulative Reward")
+    plt.xlabel("Time-Step")
+
+    plt.savefig(args.plot_name, dpi=900)
 
 if __name__ == "__main__":
 
@@ -147,6 +173,13 @@ if __name__ == "__main__":
         type = int, 
         default = 300,
         help = "Number of steps for which to run the simulation"
+    )
+
+    parser.add_argument(
+        "--plot_name",
+        type = str,
+        default = "cum_r.png",
+        help = "Name of file in which to save image with results"
     )
 
     # Agent settings
