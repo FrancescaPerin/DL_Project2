@@ -30,6 +30,10 @@ def main(args):
 
     # Compile agent
 
+    # get agent config
+    with open(args.rl_config, "rt") as f:
+        rl_config = json.load(f)
+
     # get net config
     with open(args.net_config, "rt") as f:
         net_config = json.load(f)
@@ -38,25 +42,48 @@ def main(args):
         state_space = (96, 96)
         action_space = np.arange(9)
 
+        # Construct Q Function
+
+        QFun = getQNetFunc(
+            state_space,
+            action_space,
+            BuildConvNet,
+            **net_config
+        )
+
+        # Consturct Policy
+
+
+        for key, val in rl_config["pi"]["kwargs_eval"].copy().items():
+            rl_config["pi"]["kwargs_eval"][key] = eval(val)
+
+        policy = eval(rl_config["pi"]["type"])(
+            action_space,
+            **rl_config["pi"]["kwargs"],
+            **rl_config["pi"]["kwargs_eval"]
+        )
+
+        # Construct Utility
+
+        for key, val in rl_config["util"]["kwargs_eval"].copy().items():
+            rl_config["util"]["kwargs_eval"][key] = eval(val)
+
+        UFun = eval(rl_config["util"]["type"])(
+            action_space,
+            **rl_config["util"]["kwargs"],
+            **rl_config["util"]["kwargs_eval"]
+        )
+
+
         a = QAgent(
             state_space = state_space,
             action_space = action_space,
         ).setQ(
-            getQNetFunc(
-                state_space,
-                action_space,
-                BuildConvNet,
-                **net_config
-            )
+            QFun
         ).setU(
-            getOffPolicyMaxUtil(
-                action_space
-            )
+            UFun
         ).setPolicy(
-            getGreedyEAgent(
-                action_space,
-                0.2
-            )
+            policy
         )
 
         a.setTrain(
@@ -123,6 +150,13 @@ if __name__ == "__main__":
     )
 
     # Agent settings
+
+    parser.add_argument(
+        "--rl_config",
+        type = str,
+        default = "BaseAgent.json",
+        help = "Config file with utility and policy to use"
+    )
 
     parser.add_argument(
         "--net_config", 
