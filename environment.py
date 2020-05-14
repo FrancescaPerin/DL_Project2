@@ -99,7 +99,9 @@ class Env(gym.Env):
             state, *_ = self.step(self.actionInterpreter(*action))
 
         # Render if specified
-        if self.do_render:
+        if not self.do_render:
+            self.render(mode="rgb_array")
+        else:
             self.render()
 
         return state, reward, done, info
