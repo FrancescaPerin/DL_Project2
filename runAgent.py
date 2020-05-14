@@ -11,6 +11,8 @@ from environment import Env
 
 from argparse import ArgumentParser
 
+from tqdm import tqdm
+
 import os
 import json
 from tensorflow.python.ops import summary_ops_v2
@@ -59,8 +61,8 @@ def main(args):
 
         a.setTrain(
             getSimpleQLOptim(
-                0.98,
-                0.25,
+                args.gamma,
+                args.alpha,
                 a.QModel,
                 a.UModel
             )
@@ -75,7 +77,7 @@ def main(args):
 
     state = env.start_state[None].astype(np.float32)
 
-    for i in range(args.steps):
+    for i in tqdm(range(args.steps), desc="steps"):
 
         # Act in the environment
         new_state, reward, done, info = env.get_action(a(state))
@@ -96,10 +98,51 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
 
-    parser.add_argument("--render", type = lambda x : x.lower()=="true", default = False)
-    parser.add_argument("--log", type = lambda x : x.lower()=="true", default = False)
-    parser.add_argument("--pause", type = float, default = 0.1)
-    parser.add_argument("--steps", type = int, default = 300)
-    parser.add_argument("--net_config", type = str, default = "BaseNet.json", help="config file for network topology")
+    # Simulation settings
+    parser.add_argument(
+        "--render", 
+        type = lambda x : x.lower()=="true", 
+        default = False, 
+        help="Set to False to suppress rendering of simulation"
+    )
+
+    parser.add_argument(
+        "--log", 
+        type = lambda x : x.lower()=="true", 
+        default = False,
+        help = "Set to true to log network graph's (for tensorboard)"
+    )
+
+    # Experiments settings
+
+    parser.add_argument(
+        "--steps", 
+        type = int, 
+        default = 300,
+        help = "Number of steps for which to run the simulation"
+    )
+
+    # Agent settings
+
+    parser.add_argument(
+        "--net_config", 
+        type = str, 
+        default = "BaseNet.json", 
+        help="Config file for network topology"
+    )
+
+    parser.add_argument(
+        "--gamma",
+        type = float,
+        default = 0.99,
+        help = "Discount factor"
+    )
+
+    parser.add_argument(
+        "--alpha",
+        type = float,
+        default = 5e-3,
+        help = "Learning rate"
+    )
 
     main(parser.parse_args())
