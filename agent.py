@@ -13,8 +13,8 @@ class AgentBase():
         self.prev_state = None
 
     def __call__(self, state):
-        self.prev_action = self.act(state)
-        self.prev_state = state
+        self.set_prev_action(self.act(state))
+        self.set_prev_state(state)
 
         return self.prev_action
 
@@ -23,8 +23,17 @@ class AgentBase():
 
     def observe(self, new_state, reward):
 
-        self.last_transition = (self.prev_state, self.prev_action, reward, new_state)
+        self.set_transition((self.prev_state, self.prev_action, reward, new_state))
         return self.last_transition
+
+    def set_transition(self, new_transition):
+        self.last_transition = new_transition
+
+    def set_prev_action(self, prev_action):
+        self.prev_action = prev_action
+
+    def set_prev_state(self, prev_state):
+        self.prev_state = prev_state
 
 class RandomAgent(AgentBase):
 
