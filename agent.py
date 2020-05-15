@@ -7,10 +7,16 @@ import random as rand
 
 class AgentBase():
 
-    def __init(self):
+    def __init__(self, state_space, action_space):
+
+        assert isinstance(state_space, (int, tuple)), "State space must be input size"
+        assert isinstance(action_space, (int, np.ndarray)), "Action space must be number of actions or array of action identifiers"
 
         self.prev_action = None
         self.prev_state = None
+
+        self.state_space = state_space if isinstance(state_space, tuple) else (state_space, state_space)
+        self.action_space = np.arange(action_space) if isinstance(action_space, int) else action_space
 
     def __call__(self, state):
         self.set_prev_action(self.act(state))
@@ -21,10 +27,22 @@ class AgentBase():
     def act(self, state):
         pass
 
+    def learn(self):
+        pass
+
     def observe(self, new_state, reward):
 
         self.set_transition((self.prev_state, self.prev_action, reward, new_state))
         return self.last_transition
+
+    # getters
+    def get_state_space(self):
+        return self.state_space
+
+    def get_action_space(self):
+        return self.action_space
+
+    # setters
 
     def set_transition(self, new_transition):
         self.last_transition = new_transition
@@ -48,12 +66,7 @@ class RandomAgent(AgentBase):
 class QAgent(AgentBase):
 
     def __init__(self, state_space, action_space):
-
-        assert isinstance(state_space, (int, tuple)), "State space must be input size"
-        assert isinstance(action_space, (int, np.ndarray)), "Action space must be number of actions or array of action identifiers"
-
-        self.state_space = state_space
-        self.action_space = np.arange(action_space) if isinstance(action_space, int) else action_space
+        super().__init__(state_space, action_space)
 
     def act(self, state):
 
@@ -66,13 +79,29 @@ class QAgent(AgentBase):
 
         return int(np.random.choice(self.action_space, p=probs)) # sample actions
 
-    def learn(self):
+    def learn(self, t=None):
+
+        # Get transition
+        if t is None:
+            t = self.last_transition
+
+        s1, a, r, s2 = t
+
+        # Account for simple int/float used as a and r
+        if not isinstance(a, np.ndarray):
+            a = np.array([a])[None]
+
+        if not isinstance(r, np.ndarray):
+            r = np.array([r])[None]
+
+        # Pass transition to train op
         self.trainFN(
-            self.last_transition[0], 
-            np.array([self.last_transition[1]])[None], 
-            np.array([self.last_transition[2]])[None], 
-            self.last_transition[3]
+            s1, 
+            a, 
+            r, 
+            s2
         )
+
         return self
 
     def setQ(self, Q):
@@ -114,4 +143,99 @@ class QAgent(AgentBase):
     def setTrain(self, trainFN):
         self.trainFN = trainFN
         return self
+
+
+# %% Decorators Base class
+
+class AgentDecorator(AgentBase):
+
+    def __init__(self, decorated):
+        assert isinstance(decorated, AgentBase), "AgentDecorator can only decorate instance of AgentBase"
+        self.decorated = decorated
+
+    def __call__(self, state):
+        return self.decorated(state)
+
+    def act(self, state):
+        return self.decorated.act(state)
+
+    def learn(self, t):
+        return self.decorated.learn(t)
+
+    def observe(self, new_state, reward):
+        return self.decorated.observe(new_state, reward)
+
+    # getters
+
+    def get_state_space(self):
+        return self.decorated.get_state_space()
+
+    def get_action_space(self):
+        return self.decorated.get_action_space()
+
+    # setters
+
+    def set_transition(self, new_transition):
+        self.decorated.set_transition(new_transition)
+
+    def set_prev_action(self, prev_action):
+        self.decorated.set_prev_action(prev_action)
+
+    def set_prev_state(self, prev_state):
+        self.decorated.set_prev_state(prev_state)
+
+
+# %% Decorators Implementations
+
+class RandomReplay(AgentDecorator):
+
+    def __init__(self, decorated, memory_span):
+
+        super().__init__(decorated)
+
+        self.memory_span = memory_span
+
+        # init table of pas transition
+
+        self.s1 = np.zeros([memory_span, *self.get_state_space(), 3])
+        self.a = np.zeros([memory_span, 1], "int64")
+        self.r = np.zeros([memory_span, 1])
+        self.s2 = np.zeros([memory_span, *self.get_state_space(), 3])
+
+        # init counter
+        self.idx = 0
+
+        # init index list
+        self.order = list(range(memory_span))
+
+    def __shuffle(self):
+
+        self.idx = 0
+        rand.shuffle(self.order)
+
+        self.s1 = self.s1[self.order]
+        self.a = self.a[self.order]
+        self.r = self.r[self.order]
+        self.s2 = self.s2[self.order]
+
+    def observe(self, new_state, reward):
+
+        s1, a, r, s2 = super().observe(new_state, reward)
+
+        # store in random spots of table
+        self.s1[self.idx % self.memory_span] = s1
+        self.a[self.idx % self.memory_span] = a
+        self.r[self.idx % self.memory_span] = r
+        self.s2[self.idx % self.memory_span] = s2
+
+        self.idx += 1
+
+    def learn(self, _ = None):
+
+        # loop every memory_span iterations through memory 
+        if self.idx == self.memory_span:    
+            self.__shuffle()
+            super().learn((self.s1, self.a, self.r, self.s2))
+
+
 

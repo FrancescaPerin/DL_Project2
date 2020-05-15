@@ -101,6 +101,7 @@ def main(args):
         )
 
         a.compile()
+        a = RandomReplay(a, args.memory_span)
 
         if args.log:
             summary_ops_v2.graph(a.trainFN.outputs[0].graph, step=0)
@@ -196,6 +197,13 @@ if __name__ == "__main__":
         type = str, 
         default = "BaseNet.json", 
         help="Config file for network topology"
+    )
+
+    parser.add_argument(
+        "--memory_span",
+        type = int,
+        default = 1,
+        help = "Memory span for experience replay"
     )
 
     parser.add_argument(
