@@ -1,6 +1,14 @@
 import tensorflow as tf
 from tensorflow.keras import Model, Input
+from tensorflow.keras.layers import Lambda
 import numpy as np
+
+def _get_rand_int(maxval):
+
+    def _get_rand(t):
+        return tf.random.uniform(tf.shape([1]), minval=0, maxval=maxval)
+
+    return _get_rand
 
 def getGreedyEAgent(
         action_space,
@@ -15,10 +23,9 @@ def getGreedyEAgent(
 
     # Sample conditions to determine if acting randomly or not
 
-    # batch_size = Input(batch_shape = [1], dtype = "int32")
-
-    batch_size = tf.constant(np.array([1]))
-    sampled = tf.random.uniform(batch_size, minval=0, maxval=1)
+    sampled = Lambda(
+        _get_rand_int(1)
+    )(in_action_vals)
 
     conditions = tf.cast(
         sampled < tf.constant(e),
@@ -37,11 +44,9 @@ def getGreedyEAgent(
 
     # Sample random actions to do if condition is true
     random_actions = tf.cast(
-        tf.random.uniform(
-            batch_size,
-            minval = 0,
-            maxval = n_actions
-        ),
+        Lambda(
+            _get_rand_int(n_actions)
+        )(in_action_vals),
         "int32"
     )
 
