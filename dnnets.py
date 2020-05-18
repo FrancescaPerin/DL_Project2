@@ -1,4 +1,4 @@
-from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPool2D, ZeroPadding2D
+from tensorflow.keras.layers import Dense, Conv2D, Flatten, MaxPool2D, ZeroPadding2D, Dropout
 from tensorflow.keras import Model, Input
 
 # %% Networks models
@@ -18,6 +18,7 @@ def BuildConvNet(
 
     units = [500, 200, 100],
     activations = 'relu',
+    dropout= [None, None, None],
 
 ):
 
@@ -50,6 +51,9 @@ def BuildConvNet(
     if zero_padding is None or isinstance(zero_padding, tuple):
         zero_padding = [zero_padding]*len(filters)
 
+    if dropout is None or (len(dropout) != len(units) and len(dropout) == 1):
+        dropout = [dropout]*len(units)
+
     assert (isinstance(filters, (list, tuple)) and isinstance(kernels, (list, tuple)) and isinstance(activations_conv, (list, tuple)) 
         and isinstance(strides_conv, (list, tuple)) and isinstance(strides_pool, (list, tuple)) 
             and isinstance(pooling, (list, tuple)) and isinstance(zero_padding, (list, tuple)), "Type not understood")
@@ -59,6 +63,7 @@ def BuildConvNet(
     assert len(filters) == len(activations_conv), "Number of activation functions and filters must be the same"
     assert len(filters) == len(pooling), "Number of pooling layers and filters must be the same"
     assert len(units) == len(activations), "Number of units and activations for linear layers must coincide"
+    assert len(dropout) == len(units), "Number of units and activations for linear layers must coincide"
 
     # Construct first part of the network
 
@@ -95,6 +100,9 @@ def BuildConvNet(
             units = units[i],
             activation = activations[i],
         )(x)
+
+        if dropout[i] is not None:
+            x = Dropout(dropout[i])(x)
 
     # Construct output layer
 
