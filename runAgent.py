@@ -140,13 +140,16 @@ def main(args):
         progress_bar.refresh()
 
     # Dump plot of results
-    plt.plot(np.arange(i), np.cumsum(history_r[:i]))
+    plt.plot(np.arange(i), np.cumsum(history_r[:i])/(np.arange(len(history_r[:i]))+1), label="average")
+    plt.plot(np.arange(i), history_r[:i], label="reward")
 
-    plt.title("Cumulative reward over time")
-    plt.ylabel("Cumulative Reward")
+    plt.title("Reward over time")
+    plt.ylabel("Reward")
     plt.xlabel("Time-Step")
+    plt.legend()
 
     plt.savefig(args.plot_name, dpi=900)
+    plt.show()
 
 if __name__ == "__main__":
 
@@ -216,7 +219,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--alpha",
         type = float,
-        default = 5e-3,
+        default = 0.0001,
         help = "Learning rate"
     )
 
