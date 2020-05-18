@@ -128,9 +128,6 @@ def main(args):
         # Update state
         state = new_state
 
-        if done:
-            break
-
         # Stats
 
         cumulative_r += reward

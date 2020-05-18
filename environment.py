@@ -93,7 +93,8 @@ class Env(gym.Env):
         info["sees_track"] = ((temp>100) * (temp < 110)).all(-1).any() # check if gray is in the picture
 
         # If outside tracks then reset game and give very negative reward
-        if not info["sees_track"]:
+        # Or if reached timed limit of 1000 (gym returning that simulation is done)
+        if not info["sees_track"] or done:
             reward = PUNISHMENT_RESTART
             self.reset_sim()
             state, *_ = self.step(self.actionInterpreter(*action))
@@ -104,5 +105,5 @@ class Env(gym.Env):
         else:
             self.render()
 
-        return state, reward, done, info
+        return state, reward, info
 
