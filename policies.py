@@ -116,14 +116,16 @@ def getPursuitAgent(
             I,
             greedy_actions
         ), 
-        "float32") * (1-p) * beta
+        "float32"
+    ) * (1-p) * beta
 
     decrement = ( 1 - tf.cast(
         tf.gather(
             I,
             greedy_actions
         ),
-        "float32") * (-p) * beta)
+        "float32")
+    ) * (-p) * beta
 
     
     return Model(in_action_vals, p+increment+decrement, name='PursuitPolicyModel')
