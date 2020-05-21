@@ -117,7 +117,7 @@ def main(args):
     for i in progress_bar:
 
         # Act in the environment
-        new_state, reward, done, info = env.get_action(a(state))
+        new_state, reward, info = env.get_action(a(state))
 
         new_state = new_state[None].astype(np.float32)
 
@@ -136,8 +136,11 @@ def main(args):
         progress_bar.set_description("cumulative reward: %.3f"%cumulative_r)
         progress_bar.refresh()
 
+    # Compute metrics
+    cumulative_avg = np.cumsum(history_r[:i])/(np.arange(len(history_r[:i]))+1)
+
     # Dump plot of results
-    plt.plot(np.arange(i), np.cumsum(history_r[:i])/(np.arange(len(history_r[:i]))+1), label="average")
+    plt.plot(np.arange(i), cumulative_avg, label="average")
     plt.plot(np.arange(i), history_r[:i], label="reward")
 
     plt.title("Reward over time")
@@ -145,8 +148,14 @@ def main(args):
     plt.xlabel("Time-Step")
     plt.legend()
 
-    plt.savefig(args.plot_name, dpi=900)
-    plt.show()
+    plt.savefig(args.save_to + ".png", dpi=900)
+
+    data = {}
+    data["args"] = args.__dict__
+    data["results"] = {"tot" : cumulative_r, "history" : list(history_r), "avg" : list(cumulative_avg)}
+
+    with open(args.save_to + ".json", "wt") as f:
+        json.dump(data, f)
 
 if __name__ == "__main__":
 
@@ -177,10 +186,10 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        "--plot_name",
+        "--save_to",
         type = str,
-        default = "cum_r.png",
-        help = "Name of file in which to save image with results"
+        default = "cum_r",
+        help = "Name of file in which to save image with results and the json of the data and pars"
     )
 
     # Agent settings
