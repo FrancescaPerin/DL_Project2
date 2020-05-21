@@ -1,1 +1,1 @@
-{"util": {"type": "getOffPolicyMaxUtil", "kwargs": {}, "kwargs_eval": {}}, "pi": {"type": "getGreedyEAgent", "kwargs": {"e": 0.2}, "kwargs_eval": {}}}
+{"util": {"type": "getOffPolicyMaxUtil", "kwargs": {}, "kwargs_eval": {}}, "pi": {"type": "getGreedyEAgent", "kwargs": {"e": 0.3}, "kwargs_eval": {}}}
