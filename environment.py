@@ -6,7 +6,7 @@ import types
 
 from enum import Enum
 
-PUNISHMENT_RESTART = -100.0 # punishment for going outside tracs
+PUNISHMENT_RESTART = -20.0 # punishment for going outside tracs
 
 class ActionSpace:
 
