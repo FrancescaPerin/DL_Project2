@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras import Model, Input
-from tensorflow.keras.layers import Lambda
+from tensorflow.keras.layers import Lambda, Softmax
 import numpy as np
 
 def _get_rand_int(maxval):
@@ -63,3 +63,16 @@ def getGreedyEAgent(
     )
 
     return Model(in_action_vals, action_dists, name='GreedyPolicyModel')
+
+def getSoftmaxAgent(
+        action_space,
+        temp
+):
+
+    # Get number of action
+    n_actions = len(action_space)
+
+    # Make input state tensor
+    in_action_vals = Input(batch_shape = (None, n_actions), name='action_vals_GPolicy')
+    
+    return Model(in_action_vals, Softmax()(in_action_vals/temp), name='SoftmaxPolicyModel')
