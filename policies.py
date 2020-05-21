@@ -18,6 +18,11 @@ def getGreedyEAgent(
     # Get number of action
     n_actions = len(action_space)
 
+    # Define constants
+
+    # Define all possible discrete returns
+    I = tf.constant(np.eye(n_actions))
+
     # Make input state tensor
     in_action_vals = Input(batch_shape = (None, n_actions), name='action_vals_GPolicy')
 
@@ -31,9 +36,6 @@ def getGreedyEAgent(
         sampled < tf.constant(e),
         "int32"
     )
-
-    # Define all possible discrete returns
-    I = tf.constant(np.eye(n_actions))
 
     # Compute greedy actions to do if condition is false
     greedy_actions = tf.argmax(
@@ -74,5 +76,54 @@ def getSoftmaxAgent(
 
     # Make input state tensor
     in_action_vals = Input(batch_shape = (None, n_actions), name='action_vals_GPolicy')
-    
+
     return Model(in_action_vals, Softmax()(in_action_vals/temp), name='SoftmaxPolicyModel')
+
+def getPursuitAgent(
+        action_space,
+        beta,
+        temp
+):
+
+    # Get number of action
+    n_actions = len(action_space)
+
+    # Define constants
+
+    # Define all possible discrete returns
+    I = tf.constant(np.eye(n_actions))
+
+    # Rate of increment/decrement
+    beta = tf.constant(beta)
+
+    # Make input state tensor
+    in_action_vals = Input(batch_shape = (None, n_actions), name='action_vals_GPolicy')
+
+    # Get action probabilities directly proportional to Q(·)
+    p = Softmax()(in_action_vals/temp)
+
+    # Get greedy action
+    greedy_actions = tf.argmax(
+        in_action_vals,
+        axis = -1,
+        output_type = "int32"
+    )
+
+    # Increment value of greedy action
+
+    increment = tf.cast(
+        tf.gather(
+            I,
+            greedy_actions
+        ), 
+        "float32") * (1-p) * beta
+
+    decrement = ( 1 - tf.cast(
+        tf.gather(
+            I,
+            greedy_actions
+        ),
+        "float32") * (-p) * beta)
+
+    
+    return Model(in_action_vals, p+increment+decrement, name='PursuitPolicyModel')
