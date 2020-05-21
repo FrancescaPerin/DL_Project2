@@ -1,6 +1,7 @@
 import json
 from argparse import ArgumentParser
 from matplotlib import pyplot as plt
+import re
 
 def main(args):
 
@@ -23,7 +24,9 @@ def main(args):
 	plt.xlabel("Time-Step")
 	plt.ylabel("Avergage reward at time-step")
 
-	plt.show()
+	plt.savefig(re.sub('\.json$', '_avg', args.data) +".png", dpi=900)
+
+	#plt.show()
 
 if __name__ == "__main__":
 
