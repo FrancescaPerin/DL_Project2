@@ -211,7 +211,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--memory_span",
         type = int,
-        default = 1,
+        default = 20,
         help = "Memory span for experience replay"
     )
 
