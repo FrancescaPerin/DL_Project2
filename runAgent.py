@@ -165,7 +165,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--render", 
         type = lambda x : x.lower()=="true", 
-        default = False, 
+        default = True, 
         help="Set to False to suppress rendering of simulation"
     )
 
