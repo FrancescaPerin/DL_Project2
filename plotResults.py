@@ -54,7 +54,7 @@ def main(args):
 	if args.show:
 		plt.show()
 
-if __name__ == "__main__":
+def get_parser():
 
 	parser = ArgumentParser()
 
@@ -87,6 +87,10 @@ if __name__ == "__main__":
 		help = "If true shows the std on the plot"
 	)
 
-	args = parser.parse_args()
+	return parser
+
+if __name__ == "__main__":
+
+	args = get_parser().parse_args()
 
 	main(args)
